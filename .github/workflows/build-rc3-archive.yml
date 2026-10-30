@@ -37,6 +37,29 @@ jobs:
           test -n "$PROJECT_DIR"
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
 
+      - name: Apply RC3 Compose compatibility fix
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+
+          project_dir = Path(os.environ['PROJECT_DIR'])
+          path = project_dir / 'app/src/main/java/com/elharika/electricaldesigner3d/Real3DView.kt'
+          text = path.read_text(encoding='utf-8')
+          if 'import androidx.compose.foundation.layout.ExperimentalLayoutApi' not in text:
+              text = text.replace(
+                  'import androidx.compose.foundation.layout.Column\n',
+                  'import androidx.compose.foundation.layout.Column\nimport androidx.compose.foundation.layout.ExperimentalLayoutApi\n'
+              )
+          if '@OptIn(ExperimentalLayoutApi::class)\n@Composable\nfun Real3DView' not in text:
+              text = text.replace(
+                  '@Composable\nfun Real3DView',
+                  '@OptIn(ExperimentalLayoutApi::class)\n@Composable\nfun Real3DView'
+              )
+          path.write_text(text, encoding='utf-8')
+          PY
+
       - name: Set up JDK 17
         uses: actions/setup-java@v5
         with:
