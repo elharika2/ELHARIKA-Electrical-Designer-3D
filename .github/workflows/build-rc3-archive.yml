@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: macos-15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -46,11 +46,14 @@ jobs:
       - name: Prepare Android SDK 35
         shell: bash
         run: |
-          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
-          if [ ! -x "$SDKMANAGER" ]; then
+          if [ -n "$ANDROID_HOME" ] && [ -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" ]; then
+            SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          elif command -v sdkmanager >/dev/null 2>&1; then
+            SDKMANAGER="$(command -v sdkmanager)"
+          else
+            brew install --cask android-commandlinetools
             SDKMANAGER="$(command -v sdkmanager)"
           fi
-          test -n "$SDKMANAGER"
           yes | "$SDKMANAGER" --licenses >/dev/null || true
           "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
@@ -61,11 +64,11 @@ jobs:
 
       - name: Structural verification
         working-directory: ${{ env.PROJECT_DIR }}
-        run: python tools/verify_project.py
+        run: python3 tools/verify_project.py
 
       - name: Validate embedded GLB assets
         working-directory: ${{ env.PROJECT_DIR }}
-        run: python tools/validate_electrical_assets.py
+        run: python3 tools/validate_electrical_assets.py
 
       - name: Unit tests
         working-directory: ${{ env.PROJECT_DIR }}
