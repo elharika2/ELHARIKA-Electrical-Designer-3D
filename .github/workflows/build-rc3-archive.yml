@@ -37,6 +37,17 @@ jobs:
           test -n "$PROJECT_DIR"
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
 
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
       - name: Apply RC3 Compose compatibility fix
         shell: bash
         run: |
@@ -59,17 +70,6 @@ jobs:
               )
           path.write_text(text, encoding='utf-8')
           PY
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.12'
 
       - name: Install Android SDK 35
         shell: bash
